@@ -146,12 +146,21 @@ def setup_repo():
         target_dir = suggested_dir
     os.makedirs(target_dir, exist_ok=True)
     os.chdir(target_dir)
+
     if confirm("Initialize new Git repository here?"):
         print_run_git(["init"])
+
+        # 🔹 Auto-rename master -> main if needed
+        cp = run_git(["symbolic-ref", "HEAD"])
+        if "refs/heads/master" in cp.stdout:
+            print("Renaming default branch 'master' to 'main'...")
+            print_run_git(["branch", "-m", "main"])
+
     remote_url = input("Enter GitHub repository URL (leave blank to skip): ").strip()
     if remote_url:
         print_run_git(["remote", "add", "origin", remote_url])
         print(f"✅ Remote 'origin' set to {remote_url}")
+
 
 def check_git_repo():
     cp = run_git(["rev-parse", "--is-inside-work-tree"])
