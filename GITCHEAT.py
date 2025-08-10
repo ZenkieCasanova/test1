@@ -60,10 +60,16 @@ def log_action(repo_root, msg):
         f.write(f"[{ts}] {msg}\n")
 
 def get_current_branch():
-    cp = run_git(["rev-parse", "--abbrev-ref", "HEAD"])
-    if cp.returncode != 0:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        return result.stdout.strip()
+    except subprocess.CalledProcessError:
         return None
-    return cp.stdout.strip()
 
 def list_local_branches():
     cp = run_git(["branch", "--format=%(refname:short)"])
@@ -468,6 +474,13 @@ def push_staging_to_main():
     else:
         print(f"❌ Failed to push {chosen_main}: {cp2.stderr.strip()}")
 
+# ---------------- WARNING IF MAIN ----------------
+def warn_if_on_main():
+    branch = get_current_branch()
+    if branch == "main":
+        print("\033[91m" + "[WARNING] You are currently on the MAIN branch!" + "\033[0m")
+        print("\033[91m" + "Be careful — commits and changes here affect production." + "\033[0m")
+
 # ---------------- Menu ----------------
 def menu():
     if not git_available():
@@ -476,6 +489,7 @@ def menu():
 
     while True:
         current_branch = get_current_branch() or "(no branch)"
+        warn_if_on_main()
         print(f"\n📌 Renzkie's DevOps Git Helper — Safe Mode   🌿 Current branch: {current_branch}")
         print("1. Setup new repo")
         print("2. Create & push new branch")
@@ -490,6 +504,7 @@ def menu():
         print("11. Switch branch")
         print("12. Exit")
         choice = input("> ").strip()
+        warn_if_on_main()
 
 
         if choice == "1":
