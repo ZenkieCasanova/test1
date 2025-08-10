@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Senior DevOps Git Helper (safe delete branch included + push staging->main)
+Renzkie DevOps Git Helper (safe delete branch included + push staging->main)
 
 - Uses only Python stdlib + Git CLI
 - Interactive, cautious workflow
