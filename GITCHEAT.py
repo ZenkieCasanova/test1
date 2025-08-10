@@ -339,6 +339,42 @@ def delete_branch():
             log_action(repo_root, f"Deleted remote branch origin/{branch}")
         else:
             print(f"❌ Failed to delete remote branch: {cp.stderr.strip()}")
+            
+def switch_branch():
+    if not check_git_repo():
+        return
+
+    branches = list_local_branches()
+    if not branches:
+        print("❌ No local branches found.")
+        return
+
+    print("\n🌿 Local branches:")
+    for i, b in enumerate(branches, start=1):
+        print(f"{i}. {b}")
+
+    choice = input("Enter branch number or name to switch: ").strip()
+
+    # Allow selection by number
+    if choice.isdigit():
+        idx = int(choice) - 1
+        if 0 <= idx < len(branches):
+            branch_name = branches[idx]
+        else:
+            print("❌ Invalid branch number.")
+            return
+    else:
+        branch_name = choice
+
+    if not branch_exists_local(branch_name):
+        print(f"❌ Branch '{branch_name}' does not exist locally.")
+        return
+
+    cp = run_git(["checkout", branch_name])
+    if cp.returncode == 0:
+        print(f"✅ Switched to branch '{branch_name}'.")
+    else:
+        print(f"❌ Failed to switch: {cp.stderr.strip()}")
 
 # ---------------- Push Staging -> Main (SAFE) ----------------
 def push_staging_to_main():
@@ -430,7 +466,8 @@ def menu():
         sys.exit(1)
 
     while True:
-        print("\n📌 Senior DevOps Git Helper — Safe Mode")
+        current_branch = get_current_branch() or "(no branch)"
+        print(f"\n📌 Renzkie's DevOps Git Helper — Safe Mode   🌿 Current branch: {current_branch}")
         print("1. Setup new repo")
         print("2. Create & push new branch")
         print("3. Commit & push changes")
@@ -441,8 +478,10 @@ def menu():
         print("8. Show commit history (graph)")
         print("9. Delete branch (SAFE)")
         print("10. Push staging -> main (SAFE)")
-        print("11. Exit")
+        print("11. Switch branch")
+        print("12. Exit")
         choice = input("> ").strip()
+
 
         if choice == "1":
             setup_repo()
@@ -465,6 +504,8 @@ def menu():
         elif choice == "10":
             push_staging_to_main()
         elif choice == "11":
+            switch_branch()
+        elif choice == "12":
             print("👋 Exiting Git Helper.")
             break
         else:
